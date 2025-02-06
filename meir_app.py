@@ -7,9 +7,16 @@ from nltk.corpus import stopwords
 import nltk
 import io
 
-# Download NLTK resources
-nltk.download('punkt')
-nltk.download('stopwords')
+# Ensure NLTK resources are downloaded
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt')
+
+try:
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords')
 
 # App title
 st.title("Word Cloud Generator")
@@ -55,8 +62,22 @@ if st.button("Generate word cloud"):
         wordcloud = WordCloud(
             max_words=max_words,
             background_color='white',
-            color_func=None if text_color == "Black text" else lambda *args, **kwargs: (st.sidebar.slider, )
+            color_func=(None if text_color == "Black text" else lambda *args, **kwargs: plt.cm.jet(kwargs['font_size'] % 255)),
+            width=800,
+            height=400
+        ).generate(' '.join(filtered_words))
 
-)
+        # Display word cloud
+        st.subheader("Word Cloud Output")
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.imshow(wordcloud, interpolation='bilinear')
+        ax.axis('off')
+        st.pyplot(fig)
+
+        # Download PNG functionality
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        st.download_button(label="Download PNG", data=buf, file_name='wordcloud.png', mime='image/png')
     else:
         st.error("Please enter some text or upload a file to generate a word cloud.")
