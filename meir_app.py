@@ -2,21 +2,8 @@ import streamlit as st
 import pandas as pd
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-import nltk
 import io
-
-# Ensure NLTK resources are downloaded
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
-
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
+import re
 
 # App title
 st.title("Word Cloud Generator")
@@ -46,13 +33,15 @@ else:
 # Generate word cloud button
 if st.button("Generate word cloud"):
     if text_data.strip():
-        # Tokenization and stop words removal
-        words = word_tokenize(text_data)
-        default_stopwords = set(stopwords.words('english'))
+        # Simple tokenization and stop words removal using regex
+        words = re.findall(r'\b\w+\b', text_data)
+        default_stopwords = {
+            'and', 'or', 'the', 'a', 'an', 'in', 'on', 'with', 'by', 'of', 'it', 'is', 'at', 'to', 'for', 'that', 'this'
+        }
         custom_stopwords = set(map(str.strip, additional_stopwords.split(',')))
         all_stopwords = default_stopwords.union(custom_stopwords)
 
-        filtered_words = [word.lower() for word in words if word.isalnum() and word.lower() not in all_stopwords]
+        filtered_words = [word.lower() for word in words if word.lower() not in all_stopwords]
 
         # Adjust case based on user input
         if text_case == "All upper case":
